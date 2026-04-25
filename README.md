@@ -8,11 +8,14 @@ It does **not** ship compiled Arrow binaries. Instead, it ships:
 - the upstream Apache Arrow `cpp/` source tree
 - the upstream Apache Arrow `format/` FlatBuffers definitions used by C++
 - upstream release metadata, license, and notice files
+- upstream `.env` configuration required by Arrow's CMake setup
 - Python helper functions to locate those files from build systems
 
-The package also depends on `pyarrow >=24.0.0,<25.0.0` so Arx projects can use
-the matching Python runtime package alongside the vendored source-release
-layout.
+The package also depends on `pyarrow ==26.0.1` so Arx projects can use the
+matching Python runtime package alongside the vendored source-release layout.
+
+Python 3.11 or newer is required, matching the bundled release's PyArrow
+support.
 
 ## Should you bundle Arrow C++ sources?
 
@@ -59,6 +62,7 @@ The vendored layout is intentionally close to the upstream release layout:
 src/arx_arrowcpp_sources/vendor/
 ├── cpp/
 ├── format/
+├── .env
 ├── CHANGELOG.md
 ├── LICENSE.txt
 ├── NOTICE.txt
@@ -74,3 +78,40 @@ pytest -q
 ruff check .
 mypy src tests
 ```
+
+## Versioning and releases
+
+The package version follows Apache Arrow's version. Packaging-only rebuilds use
+`.postN`; the bundled sources and PyArrow remain pinned to the upstream version.
+
+```bash
+# Discover the latest stable Arrow release and refresh all version pins.
+bash scripts/versioning.sh latest
+
+# Pin an upstream release, optionally with a packaging-only build number.
+bash scripts/versioning.sh X.Y.Z
+bash scripts/versioning.sh X.Y.Z 1
+
+# Check consistency without accessing the network or modifying files.
+bash scripts/versioning.sh --check
+poetry check --lock
+```
+
+The versioning script checks that matching PyArrow files are available on PyPI,
+fetches Apache's SHA256, updates `pyproject.toml`, `_version.py`, and this
+README, and refreshes `poetry.lock`. It rejects prereleases, downgrades, and
+invalid build numbers. Repeated runs preserve an existing `.postN` for the same
+Arrow version; a newer Arrow version resets it. Commit all four synchronized
+files together.
+
+The release workflow checks upstream daily and also supports manual dispatch
+with an optional Arrow version and build number. Only the default branch can
+publish. New versions are tested, built, and checked from an installed wheel
+before publication using the existing `PYPI_TOKEN` secret. The workflow then
+commits the version files and creates a `v<package-version>` tag and GitHub
+release. Already-published versions are not uploaded again; reruns can finish a
+missing commit, tag, or GitHub release.
+
+Repository settings must allow GitHub Actions to write repository contents and
+push to the default branch. Branch protection that disallows bot pushes requires
+an update-PR process instead.

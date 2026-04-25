@@ -4,9 +4,15 @@ title: Smoke test an installed arx-arrowcpp-sources wheel.
 
 from __future__ import annotations
 
+import re
+
+from importlib.metadata import version
 from pathlib import Path
 
+import pyarrow
+
 from arx_arrowcpp_sources import (
+    __version__,
     bundle_root,
     bundled_arrowcpp_tag,
     bundled_arrowcpp_version,
@@ -17,6 +23,7 @@ from arx_arrowcpp_sources import (
     get_license_files,
     read_bundle_metadata,
 )
+from arx_arrowcpp_sources._version import BUNDLED_ARROWCPP_SHA256
 
 
 def main() -> None:
@@ -26,7 +33,22 @@ def main() -> None:
     root = bundle_root()
     metadata = read_bundle_metadata()
 
+    if version("arx-arrowcpp-sources") != __version__:
+        raise AssertionError("Installed package version mismatch")
+    if pyarrow.__version__ != bundled_arrowcpp_version():
+        raise AssertionError("Installed PyArrow version differs from sources")
+    if metadata["source_archive_sha256"] != BUNDLED_ARROWCPP_SHA256:
+        raise AssertionError("Installed metadata source checksum mismatch")
+    cmake = (get_cpp_dir() / "CMakeLists.txt").read_text(encoding="utf8")
+    cmake_version = re.search(r'set\(ARROW_VERSION "([^"]+)"\)', cmake)
+    if (
+        cmake_version is None
+        or cmake_version.group(1) != bundled_arrowcpp_version()
+    ):
+        raise AssertionError("Installed C++ sources have the wrong version")
+
     _assert_file(root / "bundle-metadata.json")
+    _assert_file(root / ".env")
     _assert_file(root / "LICENSE.txt")
     _assert_file(root / "NOTICE.txt")
     _assert_file(get_cpp_dir() / "CMakeLists.txt")

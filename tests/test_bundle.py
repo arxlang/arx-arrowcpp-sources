@@ -58,6 +58,8 @@ def test_bundle_metadata_matches_helper_api() -> None:
     assert "cpp/src/arrow/api.h" in metadata["header_files"]
     assert "cpp/src/arrow/builder.cc" in metadata["source_files"]
     assert "cpp/CMakeLists.txt" in metadata["cmake_files"]
+    assert ".env" in metadata["vendored_root_files"]
+    assert (bundle_root() / ".env").is_file()
     assert "LICENSE.txt" in metadata["vendored_root_files"]
     assert "NOTICE.txt" in metadata["vendored_root_files"]
 
