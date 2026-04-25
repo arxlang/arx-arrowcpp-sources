@@ -1,0 +1,108 @@
+[project]
+name = "arx-arrowcpp-sources"
+version = "24.0.0"  # bundled Apache Arrow C++ version
+description = "Bundled Apache Arrow C++ source release for the Arx ecosystem"
+authors = [
+  {name = "Ivan Ogasawara", email = "ivan.ogasawara@gmail.com"},
+]
+readme = "README.md"
+requires-python = ">=3.10,<4"
+license = "Apache-2.0"
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+]
+dependencies = [
+  "pyarrow >=24.0.0,<25.0.0",
+]
+
+[build-system]
+requires = ["poetry-core>=2"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+packages = [
+  {include = "arx_arrowcpp_sources", from = "src"},
+]
+include = [
+  {path = "src/arx_arrowcpp_sources/py.typed", format = ["sdist", "wheel"]},
+  # Keep the whole generated vendor tree so the installed artifact preserves
+  # Apache Arrow's source-release layout instead of guessing every needed
+  # CMake/source/configuration extension.
+  {path = "src/arx_arrowcpp_sources/vendor", format = ["sdist", "wheel"]},
+]
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=8.0.0"
+ruff = ">=0.11.0"
+mypy = ">=1.10.0"
+bandit = ">=1.9.4"
+vulture = ">=2.15"
+pre-commit = ">=4.5.1"
+douki = ">=0.12.0"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 79
+force-exclude = true
+src = ["./"]
+exclude = [
+  'docs',
+  'src/arx_arrowcpp_sources/vendor',
+]
+fix = true
+
+[tool.ruff.lint]
+select = [
+  "E",   # pycodestyle
+  "F",   # pyflakes
+  "YTT", # flake8-2020
+  "PL",  # PL
+  "RUF", # Ruff-specific rules
+  "I001", # isort
+]
+ignore = [
+  "PLR0913",
+]
+extend-select = [
+  "UP006",  # Prefer builtin generics in annotations
+  "UP007",  # Prefer | syntax for unions and optionals
+]
+
+[tool.ruff.lint.isort]
+# Use a single line between direct and from import
+lines-between-types = 1
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+exclude = [
+  "^src/arx_arrowcpp_sources/vendor/",
+]
+
+[tool.bandit]
+exclude_dirs = [
+  "src/arx_arrowcpp_sources/vendor",
+]
+
+[tool.vulture]
+exclude = [
+  "src/arx_arrowcpp_sources/vendor/*",
+]
+min_confidence = 80
+paths = [
+  "scripts",
+  "src/arx_arrowcpp_sources",
+  "tests",
+]
