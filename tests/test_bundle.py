@@ -2,6 +2,11 @@
 title: Tests for the packaged Apache Arrow C++ source helpers.
 """
 
+from pathlib import Path
+
+import arx_arrowcpp_sources._bundle as bundle_module
+import pytest
+
 from arx_arrowcpp_sources import (
     bundle_root,
     bundled_arrowcpp_tag,
@@ -17,8 +22,8 @@ from arx_arrowcpp_sources import (
     get_source_dir,
     get_source_files,
     get_source_root,
+    read_bundle_metadata,
 )
-from arx_arrowcpp_sources._bundle import read_bundle_metadata
 
 
 def test_bundle_paths_exist() -> None:
@@ -55,3 +60,33 @@ def test_bundle_metadata_matches_helper_api() -> None:
     assert "cpp/CMakeLists.txt" in metadata["cmake_files"]
     assert "LICENSE.txt" in metadata["vendored_root_files"]
     assert "NOTICE.txt" in metadata["vendored_root_files"]
+
+
+def test_bundle_root_reports_missing_bundle(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """
+    title: Assert that missing generated bundle contents fail clearly.
+    parameters:
+      monkeypatch:
+        type: pytest.MonkeyPatch
+      tmp_path:
+        type: Path
+    """
+
+    def fake_package_root() -> Path:
+        """
+        title: Return a temporary empty package root for this test.
+        returns:
+          type: Path
+        """
+        return tmp_path
+
+    monkeypatch.setattr(bundle_module, "package_root", fake_package_root)
+
+    with pytest.raises(
+        FileNotFoundError,
+        match=r"Bundled Apache Arrow C\+\+ sources are missing",
+    ):
+        bundle_module.bundle_root()

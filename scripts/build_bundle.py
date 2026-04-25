@@ -64,6 +64,14 @@ def build_bundle() -> None:
 
 
 def _download_archive(target_path: Path) -> str:
+    """
+    title: Download the Apache Arrow source archive to a local path.
+    parameters:
+      target_path:
+        type: Path
+    returns:
+      type: str
+    """
     last_error: Exception | None = None
 
     for url in UPSTREAM_ARCHIVE_URLS:
@@ -81,6 +89,12 @@ def _download_archive(target_path: Path) -> str:
 
 
 def _verify_archive(archive_path: Path) -> None:
+    """
+    title: Verify the downloaded source archive checksum.
+    parameters:
+      archive_path:
+        type: Path
+    """
     digest = hashlib.sha256()
     with archive_path.open("rb") as file_handle:
         for chunk in iter(lambda: file_handle.read(1024 * 1024), b""):
@@ -95,6 +109,14 @@ def _verify_archive(archive_path: Path) -> None:
 
 
 def _extract_archive(archive_path: Path, output_dir: Path) -> None:
+    """
+    title: Safely extract regular files and directories from the archive.
+    parameters:
+      archive_path:
+        type: Path
+      output_dir:
+        type: Path
+    """
     output_dir.mkdir(parents=True, exist_ok=True)
     with tarfile.open(archive_path, "r:gz") as archive:
         for member in archive.getmembers():
@@ -120,6 +142,14 @@ def _extract_archive(archive_path: Path, output_dir: Path) -> None:
 
 
 def _should_extract_archive_member(member: tarfile.TarInfo) -> bool:
+    """
+    title: Return whether one archive member should be extracted.
+    parameters:
+      member:
+        type: tarfile.TarInfo
+    returns:
+      type: bool
+    """
     member_path = Path(member.name)
     if member_path.is_absolute() or ".." in member_path.parts:
         raise ValueError(f"Archive contains an unsafe path: {member.name}")
@@ -127,6 +157,14 @@ def _should_extract_archive_member(member: tarfile.TarInfo) -> bool:
 
 
 def _find_upstream_root(output_dir: Path) -> Path:
+    """
+    title: Locate the extracted Apache Arrow source root.
+    parameters:
+      output_dir:
+        type: Path
+    returns:
+      type: Path
+    """
     for child in output_dir.iterdir():
         cpp_cmake = child / "cpp" / "CMakeLists.txt"
         arrow_api_header = child / "cpp" / "src" / "arrow" / "api.h"
@@ -145,6 +183,14 @@ def _find_upstream_root(output_dir: Path) -> Path:
 
 
 def _sync_vendor_tree(upstream_root: Path, downloaded_url: str) -> None:
+    """
+    title: Replace the package vendor tree with the selected upstream files.
+    parameters:
+      upstream_root:
+        type: Path
+      downloaded_url:
+        type: str
+    """
     if VENDOR_DIR.exists():
         shutil.rmtree(VENDOR_DIR)
     VENDOR_DIR.mkdir(parents=True)
@@ -166,6 +212,14 @@ def _sync_vendor_tree(upstream_root: Path, downloaded_url: str) -> None:
 
 
 def _build_metadata(downloaded_url: str) -> dict[str, object]:
+    """
+    title: Build metadata describing the vendored source tree.
+    parameters:
+      downloaded_url:
+        type: str
+    returns:
+      type: dict[str, object]
+    """
     return {
         "bundled_version": BUNDLED_ARROWCPP_VERSION,
         "bundled_tag": BUNDLED_ARROWCPP_TAG,
@@ -191,6 +245,16 @@ def _build_metadata(downloaded_url: str) -> dict[str, object]:
 
 
 def _relative_files(root: Path, suffixes: Iterable[str]) -> list[str]:
+    """
+    title: List vendored files below a root with selected suffixes.
+    parameters:
+      root:
+        type: Path
+      suffixes:
+        type: Iterable[str]
+    returns:
+      type: list[str]
+    """
     suffix_set = set(suffixes)
     return [
         path.relative_to(VENDOR_DIR).as_posix()
@@ -200,6 +264,14 @@ def _relative_files(root: Path, suffixes: Iterable[str]) -> list[str]:
 
 
 def _relative_cmake_files(root: Path) -> list[str]:
+    """
+    title: List vendored CMake files below a root.
+    parameters:
+      root:
+        type: Path
+    returns:
+      type: list[str]
+    """
     files = [path for path in root.rglob("*.cmake") if path.is_file()]
     files.extend(
         path for path in root.rglob("CMakeLists.txt") if path.is_file()

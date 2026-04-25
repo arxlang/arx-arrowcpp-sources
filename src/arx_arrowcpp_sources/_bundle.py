@@ -204,6 +204,16 @@ def _files_with_suffixes(
     root: Path,
     suffixes: tuple[str, ...],
 ) -> tuple[Path, ...]:
+    """
+    title: Return files below a root with selected suffixes.
+    parameters:
+      root:
+        type: Path
+      suffixes:
+        type: tuple[str, Ellipsis]
+    returns:
+      type: tuple[Path, Ellipsis]
+    """
     suffix_set = set(suffixes)
     return tuple(
         sorted(

@@ -1,7 +1,7 @@
 # arx-arrowcpp-sources
 
-`arx-arrowcpp-sources` packages a pinned Apache Arrow C++ source release for
-the Arx ecosystem.
+`arx-arrowcpp-sources` packages a pinned Apache Arrow C++ source release for the
+Arx ecosystem.
 
 It does **not** ship compiled Arrow binaries. Instead, it ships:
 

@@ -31,6 +31,9 @@ packages = [
 ]
 include = [
   {path = "src/arx_arrowcpp_sources/py.typed", format = ["sdist", "wheel"]},
+  # Keep the whole generated vendor tree so the installed artifact preserves
+  # Apache Arrow's source-release layout instead of guessing every needed
+  # CMake/source/configuration extension.
   {path = "src/arx_arrowcpp_sources/vendor", format = ["sdist", "wheel"]},
 ]
 
@@ -53,6 +56,7 @@ force-exclude = true
 src = ["./"]
 exclude = [
   'docs',
+  'src/arx_arrowcpp_sources/vendor',
 ]
 fix = true
 
@@ -83,3 +87,22 @@ quote-style = "double"
 [tool.mypy]
 python_version = "3.10"
 strict = true
+exclude = [
+  "^src/arx_arrowcpp_sources/vendor/",
+]
+
+[tool.bandit]
+exclude_dirs = [
+  "src/arx_arrowcpp_sources/vendor",
+]
+
+[tool.vulture]
+exclude = [
+  "src/arx_arrowcpp_sources/vendor/*",
+]
+min_confidence = 80
+paths = [
+  "scripts",
+  "src/arx_arrowcpp_sources",
+  "tests",
+]

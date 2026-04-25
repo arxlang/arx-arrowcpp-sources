@@ -9,7 +9,7 @@ test: bundle
 .PHONY: lint
 lint:
 	ruff check .
-	mypy src tests
+	mypy src tests scripts
 
 .PHONY: build
 build: bundle

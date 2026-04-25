@@ -18,6 +18,7 @@ from arx_arrowcpp_sources._bundle import (
     get_source_files,
     get_source_root,
     package_root,
+    read_bundle_metadata,
 )
 from arx_arrowcpp_sources._version import __version__
 
@@ -38,4 +39,5 @@ __all__ = [
     "get_source_files",
     "get_source_root",
     "package_root",
+    "read_bundle_metadata",
 ]

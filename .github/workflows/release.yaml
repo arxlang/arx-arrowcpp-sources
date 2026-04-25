@@ -72,6 +72,13 @@ jobs:
       - name: Build package
         run: poetry build
 
+      - name: Smoke test installed wheel
+        run: |
+          python -m venv /tmp/arx-arrowcpp-wheel-smoke
+          /tmp/arx-arrowcpp-wheel-smoke/bin/python -m pip install --upgrade pip
+          /tmp/arx-arrowcpp-wheel-smoke/bin/python -m pip install --no-deps dist/*.whl
+          /tmp/arx-arrowcpp-wheel-smoke/bin/python scripts/smoke_test_installed.py
+
       - name: Publish to PyPI
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}

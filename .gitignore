@@ -209,3 +209,8 @@ __marimo__/
 
 # llm
 .codex
+PLAN.md
+REVIEW.md
+
+# pytest temporary directories
+pytest-of-*/
