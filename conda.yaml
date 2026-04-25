@@ -1,0 +1,9 @@
+name: arx-arrowcpp-sources
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  - python
+  - poetry >=2
+  - pip
+  - nodejs

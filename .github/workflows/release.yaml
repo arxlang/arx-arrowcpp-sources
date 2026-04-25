@@ -1,0 +1,80 @@
+name: release
+
+on:
+  workflow_dispatch:
+    inputs:
+      build:
+        description: "Optional post-release build number (e.g. 1 -> .post1)"
+        required: false
+        type: string
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          miniforge-version: latest
+          environment-file: conda.yaml
+          channels: conda-forge,nodefaults
+          activate-environment: arx-arrowcpp-sources
+          auto-update-conda: true
+          conda-solver: libmamba
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: poetry install --with dev
+
+      - name: Resolve release version
+        env:
+          BUILD_NUMBER: ${{ inputs.build }}
+        run: |
+          set -euo pipefail
+          BUNDLED_VERSION="$(python - <<'PY'
+          import re
+          from pathlib import Path
+
+          source = Path("src/arx_arrowcpp_sources/_version.py").read_text(
+              encoding="utf8"
+          )
+          match = re.search(
+              r'^BUNDLED_ARROWCPP_VERSION = "([^"]+)"$',
+              source,
+              re.MULTILINE,
+          )
+          if match is None:
+              raise SystemExit(
+                  "Unable to determine bundled Apache Arrow C++ version"
+              )
+          print(match.group(1))
+          PY
+          )"
+          bash ./scripts/versioning.sh "$BUNDLED_VERSION" "${BUILD_NUMBER:-}"
+          python - <<'PY'
+          import tomllib
+
+          with open("pyproject.toml", "rb") as file_handle:
+              version = tomllib.load(file_handle)["project"]["version"]
+
+          print(f"Effective release version: {version}")
+          PY
+
+      - name: Generate Apache Arrow C++ source bundle
+        run: python scripts/build_bundle.py
+
+      - name: Build package
+        run: poetry build
+
+      - name: Publish to PyPI
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          poetry config pypi-token.pypi "${PYPI_TOKEN}"
+          poetry publish --skip-existing
