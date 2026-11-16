@@ -20,6 +20,8 @@ repos:
     rev: "v3.0.2"
     hooks:
       - id: prettier
+        # Avoid nodeenv selecting an unsupported prerelease of Node.js.
+        language_version: "24.22.1"
 
   - repo: local
     hooks:

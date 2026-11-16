@@ -1,24 +1,24 @@
 [project]
 name = "arx-arrowcpp-sources"
-version = "24.0.0"  # bundled Apache Arrow C++ version
+version = "26.0.1"  # bundled Apache Arrow C++ version
 description = "Bundled Apache Arrow C++ source release for the Arx ecosystem"
 authors = [
   {name = "Ivan Ogasawara", email = "ivan.ogasawara@gmail.com"},
 ]
 readme = "README.md"
-requires-python = ">=3.10,<4"
+requires-python = ">=3.11,<4"
 license = "Apache-2.0"
 classifiers = [
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: 3.15",
 ]
 dependencies = [
-  "pyarrow >=24.0.0,<25.0.0",
+  "pyarrow ==26.0.1",
 ]
 
 [build-system]
@@ -35,6 +35,8 @@ include = [
   # Apache Arrow's source-release layout instead of guessing every needed
   # CMake/source/configuration extension.
   {path = "src/arx_arrowcpp_sources/vendor", format = ["sdist", "wheel"]},
+  # Arrow's CMake reads ../.env; retain it despite common VCS dotfile ignores.
+  {path = "src/arx_arrowcpp_sources/vendor/.env", format = ["sdist", "wheel"]},
 ]
 
 [tool.poetry.group.dev.dependencies]
@@ -48,9 +50,10 @@ douki = ">=0.12.0"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["src", "."]
 
 [tool.ruff]
-target-version = "py310"
+target-version = "py311"
 line-length = 79
 force-exclude = true
 src = ["./"]
@@ -85,11 +88,23 @@ lines-between-types = 1
 quote-style = "double"
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.11"
 strict = true
 exclude = [
   "^src/arx_arrowcpp_sources/vendor/",
 ]
+
+[[tool.mypy.overrides]]
+# PyArrow does not ship typing metadata; keep project-owned code strict.
+module = ["pyarrow"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+# Pytest imports optional NumPy types whose newer stubs require Python 3.12+.
+# Skip those third-party stubs, not the project's strict Python 3.11 checks.
+module = ["numpy", "numpy.*"]
+follow_imports = "skip"
+follow_imports_for_stubs = true
 
 [tool.bandit]
 exclude_dirs = [

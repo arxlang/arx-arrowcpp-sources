@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import shutil
 import sys
 import tarfile
@@ -37,6 +38,7 @@ UPSTREAM_ARCHIVE_URLS = (
 )
 VENDORED_DIRECTORIES = ("cpp", "format")
 VENDORED_ROOT_FILES = (
+    ".env",
     "CHANGELOG.md",
     "LICENSE.txt",
     "NOTICE.txt",
@@ -60,6 +62,7 @@ def build_bundle() -> None:
         _extract_archive(archive_path, extracted_root)
 
         upstream_root = _find_upstream_root(extracted_root)
+        _verify_source_version(upstream_root)
         _sync_vendor_tree(upstream_root, downloaded_url)
 
 
@@ -180,6 +183,21 @@ def _find_upstream_root(output_dir: Path) -> Path:
     raise FileNotFoundError(
         "Unable to locate extracted Apache Arrow source tree"
     )
+
+
+def _verify_source_version(upstream_root: Path) -> None:
+    """
+    title: Reject sources that do not match the pinned release.
+    parameters:
+      upstream_root:
+        type: Path
+    """
+    cmake = (upstream_root / "cpp" / "CMakeLists.txt").read_text(
+        encoding="utf8"
+    )
+    match = re.search(r'set\(ARROW_VERSION "([^"]+)"\)', cmake)
+    if match is None or match.group(1) != BUNDLED_ARROWCPP_VERSION:
+        raise ValueError("Apache Arrow source version does not match the pin")
 
 
 def _sync_vendor_tree(upstream_root: Path, downloaded_url: str) -> None:
