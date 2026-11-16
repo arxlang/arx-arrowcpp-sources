@@ -7,6 +7,9 @@ on:
 jobs:
   tests:
     runs-on: ubuntu-latest
+    env:
+      # Resume interrupted package downloads rather than failing immediately.
+      POETRY_REQUESTS_MAX_RETRIES: "3"
     strategy:
       fail-fast: false
       matrix:
