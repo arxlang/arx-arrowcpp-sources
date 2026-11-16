@@ -99,6 +99,13 @@ exclude = [
 module = ["pyarrow"]
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+# Pytest imports optional NumPy types whose newer stubs require Python 3.12+.
+# Skip those third-party stubs, not the project's strict Python 3.11 checks.
+module = ["numpy", "numpy.*"]
+follow_imports = "skip"
+follow_imports_for_stubs = true
+
 [tool.bandit]
 exclude_dirs = [
   "src/arx_arrowcpp_sources/vendor",
