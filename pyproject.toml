@@ -94,6 +94,11 @@ exclude = [
   "^src/arx_arrowcpp_sources/vendor/",
 ]
 
+[[tool.mypy.overrides]]
+# PyArrow does not ship typing metadata; keep project-owned code strict.
+module = ["pyarrow"]
+ignore_missing_imports = true
+
 [tool.bandit]
 exclude_dirs = [
   "src/arx_arrowcpp_sources/vendor",
